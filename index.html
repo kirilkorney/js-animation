@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Керування анімацією на JavaScript</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        /* Сцена, де рухається елемент */
+        .stage {
+            width: 600px;
+            max-width: 90vw;
+            height: 250px;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background-color: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        /* Анімований об'єкт */
+        #box {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            border-radius: 12px;
+            position: absolute;
+            top: 95px;
+            left: 0px;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+        }
+
+        /* Панель керування */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #2c2c2c;
+            color: #fff;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #3d3d3d;
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button.primary {
+            background-color: #3a7bd5;
+        }
+
+        button.primary:hover {
+            background-color: #2b62b0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Керування JavaScript-анімацією</h1>
+
+    <div class="stage" id="stage">
+        <div id="box"></div>
+    </div>
+
+    <div class="controls">
+        <button id="btnStart" class="primary">Старт</button>
+        <button id="btnPause">Пауза</button>
+        <button id="btnReset">Скинути</button>
+        <button id="btnSpeed">Прискорити (x2)</button>
+        <button id="btnShape">Змінити форму</button>
+    </div>
+
+    <script>
+        // 1. Отримання посилань на DOM-елементи
+        const stage = document.getElementById('stage');
+        const box = document.getElementById('box');
+        const btnStart = document.getElementById('btnStart');
+        const btnPause = document.getElementById('btnPause');
+        const btnReset = document.getElementById('btnReset');
+        const btnSpeed = document.getElementById('btnSpeed');
+        const btnShape = document.getElementById('btnShape');
+
+        // 2. Змінні стану анімації
+        let positionX = 0;          // Поточна координата по осі X
+        let direction = 1;          // Напрямок руху: 1 (вправо) або -1 (вліво)
+        let speed = 3;              // Швидкість руху в пікселях за кадр
+        let angle = 0;              // Кут обертання в градусах
+        let animationId = null;     // Ідентифікатор поточного кадру анімації
+        let isRunning = false;      // Прапорець стану (чи запущена анімація)
+        let isCircle = false;       // Прапорець форми об'єкта
+
+        // 3. Основна функція покадрової анімації
+        function animate() {
+            // Обчислюємо максимальну межу руху (ширина сцени мінус ширина квадрата)
+            const maxX = stage.clientWidth - box.offsetWidth;
+
+            // Оновлюємо координату та кут повороту
+            positionX += speed * direction;
+            angle += speed * 1.5 * direction;
+
+            // Перевірка зіткнення зі стінками сцени
+            if (positionX >= maxX) {
+                positionX = maxX;
+                direction = -1; // Змінюємо напрямок вліво
+            } else if (positionX <= 0) {
+                positionX = 0;
+                direction = 1;  // Змінюємо напрямок вправо
+            }
+
+            // Застосовуємо нові стилі до елемента
+            box.style.transform = `translateX(${positionX}px) rotate(${angle}deg)`;
+
+            // Запитуємо наступний кадр анімації
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 4. Обробники подій для кнопок керування
+        btnStart.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                animate();
+            }
+        });
+
+        btnPause.addEventListener('click', () => {
+            if (isRunning) {
+                isRunning = false;
+                cancelAnimationFrame(animationId);
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            positionX = 0;
+            angle = 0;
+            direction = 1;
+            speed = 3;
+            btnSpeed.textContent = 'Прискорити (x2)';
+            box.style.transform = `translateX(0px) rotate(0deg)`;
+        });
+
+        btnSpeed.addEventListener('click', () => {
+            if (speed === 3) {
+                speed = 7;
+                btnSpeed.textContent = 'Звичайна швидкість';
+            } else {
+                speed = 3;
+                btnSpeed.textContent = 'Прискорити (x2)';
+            }
+        });
+
+        btnShape.addEventListener('click', () => {
+            isCircle = !isCircle;
+            box.style.borderRadius = isCircle ? '50%' : '12px';
+        });
+    </script>
+</body>
+</html>
